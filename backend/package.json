@@ -9,7 +9,8 @@
     "build": "prisma generate && esbuild src/server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +37,7 @@
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^4.1.12",
     "esbuild": "^0.28.2",
     "eslint": "^10.15.0",
     "globals": "^17.14.0",
