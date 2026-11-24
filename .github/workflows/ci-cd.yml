@@ -57,6 +57,8 @@ jobs:
 
       - name: Build backend
         working-directory: backend
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/dummy
         run: npm run build
 
       - name: Upload backend artifact
