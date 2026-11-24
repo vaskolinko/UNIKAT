@@ -1,10 +1,15 @@
+import type { User } from "../types";
+
 
 type DashboardProps = {
-  currentUser: any;
+  currentUser: User | null;
   onLogout: () => void;
 };
 
 function Dashboard({ currentUser, onLogout }: DashboardProps) {
+  if (!currentUser) {
+    return null;
+  }
   return (
     <main className="dashboard-page">
       <header className="dashboard-header">

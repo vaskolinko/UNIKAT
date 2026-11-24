@@ -1,8 +1,9 @@
 
 import "./App.css";
+import type { User } from "./types";
 
 type HomePageProps = {
-  currentUser: any;
+  currentUser: User | null;
   onLogout: () => void;
 };
 
