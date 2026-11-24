@@ -5,11 +5,12 @@ import Dashboard from "./pages/Dashboard";
 import BookingPage from "./pages/BookingPage";
 import GalleryPage from "./pages/GalleryPage";
 import CommunityPage from "./pages/CommunityPage";
+import type { User } from "./types";
 function App() {
   const currentPath = window.location.pathname;
 
   const isLoginPage = currentPath === "/login";
-  const isRegisterPage = currentPath === "/register";
+  //const isRegisterPage = currentPath === "/register"; v uporabi bo kasneje zato dodan comment ker bo lint padel
   const isHomePage = currentPath === "/";
   const isDashboardPage = currentPath === "/dashboard";
   const isBookingPage = currentPath === "/booking";
@@ -21,7 +22,7 @@ function App() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   useEffect(() => {
   const checkLogin = async () => {
     try {
