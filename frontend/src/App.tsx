@@ -6,6 +6,7 @@ import BookingPage from "./pages/BookingPage";
 import GalleryPage from "./pages/GalleryPage";
 import CommunityPage from "./pages/CommunityPage";
 import type { User } from "./types";
+import { API_URL } from "./config";
 function App() {
   const currentPath = window.location.pathname;
 
@@ -26,12 +27,7 @@ function App() {
   useEffect(() => {
   const checkLogin = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/auth/me",
-        {
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${API_URL}/api/auth/me`, { credentials: "include" });
 
       if (!response.ok) {
         setCurrentUser(null);
@@ -63,7 +59,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/api/auth/register",
+        `${API_URL}/api/auth/register`,
         {
           method: "POST",
           headers: {
@@ -106,7 +102,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/api/auth/login",
+        `${API_URL}/api/auth/login`,
         {
           method: "POST",
           credentials: "include",
@@ -140,7 +136,7 @@ function App() {
     const handleLogout = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3000/api/auth/logout",
+        `${API_URL}/api/auth/logout`,
         {
           method: "POST",
           credentials: "include",

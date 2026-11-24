@@ -10,6 +10,12 @@ import authRoutes from "./routes/auth.js";
 dotenv.config();
 
 const app = express();
+
+const isProduction = process.env.NODE_ENV === "production";
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 3000;
 
 if (!process.env.SESSION_SECRET) {
@@ -38,7 +44,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: frontendUrl,
     credentials: true,
   })
 );
@@ -52,8 +58,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24,
     },
   })
