@@ -132,3 +132,55 @@ Frontend je privzeto dostopen na `http://localhost:5173`.
 ### Podatkovna baza
 
 Projekt uporablja PostgreSQL. Za lokalni razvoj je predviden Docker. Povezava do podatkovne baze se nastavi v datoteki `.env` z uporabo spremenljivke `DATABASE_URL`.
+
+---
+
+## 8. Dodatna navodila za zagon
+
+Lokalno bazo prvič ustvariš z Dockerjem:
+
+```bash
+docker run --name unikat-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=unikat -p 5432:5432 -d postgres:16
+```
+
+Ob vsakem naslednjem zagonu je dovolj `docker start unikat-db`.
+
+Datoteka `backend/.env` mora vsebovati:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/unikat"
+SESSION_SECRET="dolg-nakljucen-niz"
+```
+
+Če spremenljivka `VITE_API_URL` ni nastavljena, frontend uporablja `http://localhost:3000`.
+
+| Ukaz | Backend | Frontend |
+|---|---|---|
+| `npm run dev` | razvojni strežnik (tsx watch) | razvojni strežnik (Vite) |
+| `npm run lint` | ESLint | ESLint |
+| `npm run build` | `prisma generate` in esbuild v `dist/server.js` | TypeScript in Vite build v `dist/` |
+| `npm start` | zagon zgrajenega `dist/server.js` | – |
+| `npm test` | Vitest | Vitest |
+| `npm run test:coverage` | testi s poročilom o pokritosti | testi s poročilom o pokritosti |
+
+## 9. CI/CD
+
+[![CI/CD](https://github.com/vaskolinko/UNIKAT/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/vaskolinko/UNIKAT/actions/workflows/ci-cd.yml)
+
+**Nameščena aplikacija:**
+
+- Frontend: https://unikat-five.vercel.app
+- Backend API: https://unikat-backend-xxxx.onrender.com/api/health
+
+> Backend teče na brezplačnem paketu Render, ki po 15 minutah neaktivnosti zaspi. Prvi zahtevek lahko zato traja do ene minute.
+
+Cevovod je definiran v `.github/workflows/ci-cd.yml`. Sproži se ob vsakem pull requestu v vejo `main` in ob vsakem pushu na `main`. Veja `main` je zaščitena: pull requesta ni mogoče združiti, dokler joba `lint`, `build` in `test` nista uspešna.
+
+| Faza | Opis |
+|---|---|
+| **lint** | Z ESLint preveri slog in kakovost kode za frontend in backend. Če linter najde napako, job pade. |
+| **build** | Zgradi frontend (Vite) in backend (esbuild, Prisma client). Npm odvisnosti se predpomnijo z `actions/setup-node` (`cache: npm`). Rezultata gradnje se shranita kot artefakta `frontend-build` in `backend-build`. |
+| **test** | Z Vitest zažene teste za backend in frontend. Poročilo o pokritosti kode se shrani kot artefakt `coverage-report`. Če kateri koli test pade, pade tudi cevovod. |
+| **deploy** | Izvede se samo ob pushu na `main` in samo, če so `lint`, `build` in `test` uspešni. Uporablja okolje `production`. Prenese artefakte iz joba build, aplikacije ne gradi ponovno. Frontend namesti na Vercel, backend pa na Render, ki uporablja bazo PostgreSQL na Neonu. |
+
+Tokeni in gesla so shranjeni kot GitHub Secrets v okolju `production` oziroma kot okoljske spremenljivke na Renderju. V kodi niso zapisani.
