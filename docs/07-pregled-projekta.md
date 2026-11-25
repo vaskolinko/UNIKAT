@@ -1,74 +1,83 @@
-# 7. Pregled prevzetega projekta – UNIKAT
+# Pregled prevzetega projekta UNIKAT
 
-Dokument povzema stanje projekta UNIKAT ob prevzemu. Pregledani so bili dokumentacija v mapi `docs/` (zasnova, funkcionalnosti, podatkovni model, arhitektura, uporabniške zgodbe, wireframi in ADR-ji), koda frontenda in backenda ter delovanje aplikacije ob lokalnem zagonu.
+Pri prevzemu projekta sem pregledal dokumentacijo v mapi docs, kodo frontenda in backenda ter aplikacijo zagnal lokalno. V nadaljevanju je opisano, kaj je bilo narejeno za MVP in ali to zadošča uporabniškim zgodbam.
 
 ## Implementirane funkcionalnosti za MVP
 
-Od sedmih MVP funkcionalnosti iz `02-funkcionalnosti-in-obseg.md` je v celoti implementirana samo prva:
+V dokumentu 02-funkcionalnosti-in-obseg.md je za MVP predvidenih sedem funkcionalnosti. V celoti je implementirana samo prva, uporabniški računi in vloge. Za rezervacije in naročila šopkov je pripravljen podatkovni model, ostale funkcionalnosti pa še niso narejene.
 
-| MVP funkcionalnost | Stanje |
+| Funkcionalnost | Stanje |
 |---|---|
-| Uporabniški računi in vloge | Implementirano (backend + frontend) |
+| Uporabniški računi in vloge | Implementirano |
 | Koledar razpoložljivih terminov | Ni implementirano |
-| Zahteva za rezervacijo termina | Samo podatkovni model (`Reservation`) |
+| Zahteva za rezervacijo termina | Samo tabela v bazi |
 | Potrjevanje ali zavračanje rezervacij | Ni implementirano |
-| Naročilo šopka ali aranžmaja | Samo podatkovni model (`FlowerOrder`) |
-| Upravljanje naročil šopkov | Samo podatkovni model (polja `decisionReason`, `decidedAt`) |
+| Naročilo šopka ali aranžmaja | Samo tabela v bazi |
+| Upravljanje naročil šopkov | Samo polja v tabeli |
 | Dnevni e-poštni povzetek | Ni implementirano |
 
-**Uspešno implementirano:**
+### Kaj deluje
 
-- API končne točke `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout` in `GET /api/auth/me`.
-- Strežniška validacija registracije (obvezna polja, oblika e-pošte, geslo vsaj 8 znakov, unikaten e-poštni naslov).
-- Zgoščevanje gesel z bcrypt, seje shranjene v PostgreSQL (tabela `user_sessions`), regeneracija seje ob prijavi.
-- Middleware `requireAuth` za zaščito API poti (trenutno uporabljen samo na testni poti `/api/protected`).
-- Health endpoint `GET /api/health`.
-- Frontend: domača stran, obrazca za prijavo in registracijo, nadzorna plošča prijavljenega uporabnika ter navigacija na strani Naroči termin, Galerija in Skupnost.
+- Registracija, prijava, odjava in preverjanje prijavljenega uporabnika prek API poti /api/auth/register, /api/auth/login, /api/auth/logout in /api/auth/me.
+- Backend preveri, da so izpolnjena vsa polja, da je e-poštni naslov veljaven in še ni uporabljen ter da ima geslo vsaj 8 znakov.
+- Gesla so shranjena zgoščeno z bcrypt. Seje so shranjene v bazi PostgreSQL, ob prijavi se seja ustvari na novo.
+- Middleware requireAuth ščiti poti, ki zahtevajo prijavo. Zaenkrat je uporabljen samo na testni poti /api/protected.
+- Pot /api/health za preverjanje, ali API deluje.
+- Na frontendu so domača stran, obrazca za prijavo in registracijo, nadzorna plošča za prijavljenega uporabnika ter povezave na strani Naroči termin, Galerija in Skupnost.
 
-**Ni implementirano oziroma je samo nakazano:**
+### Kaj še manjka
 
-- Strani Naroči termin, Galerija in Skupnost so statične in prikazujejo oznako »Kmalu na voljo«.
-- Za rezervacije in naročila šopkov obstajajo tabele v bazi, ni pa API končnih točk, poslovnih pravil ne obrazcev.
-- Ni modela za razpoložljivost in delovni čas, koledarja, skrbniškega pogleda za lastnico, e-poštnih funkcij in komentarjev.
+- Strani Naroči termin, Galerija in Skupnost so samo statične in prikazujejo napis Kmalu na voljo.
+- Za rezervacije in naročila šopkov obstajajo tabele v bazi, ni pa API poti, poslovnih pravil in obrazcev.
+- Ni modela za razpoložljivost in delovni čas, ni koledarja, skrbniškega dela za lastnico, pošiljanja e-pošte in komentarjev.
 
-## Ustreznost implementacije uporabniškim zgodbam
+## Ali implementacija zadošča uporabniškim zgodbam
 
-Pregledanih je bilo prvih pet uporabniških zgodb iz `05-uporabniske-zgodbe.md`, ki pokrivajo jedro MVP.
+Pregledal sem prvih pet uporabniških zgodb iz dokumenta 05-uporabniske-zgodbe.md, ker pokrivajo glavni del MVP.
 
-### US-01 – Uporabniški računi in vloge: zadošča
+| Zgodba | Zadošča |
+|---|---|
+| US-01 Uporabniški računi in vloge | Da |
+| US-02 Koledar razpoložljivih terminov | Ne |
+| US-03 Oddaja zahteve za rezervacijo | Ne, delno pripravljeno |
+| US-04 Potrjevanje ali zavračanje rezervacij | Ne |
+| US-05 Naročilo šopka ali aranžmaja | Ne, delno pripravljeno |
 
-| Pogoj sprejema | Izpolnjen | Opomba |
+### US-01 Uporabniški računi in vloge: zadošča
+
+Vsi pogoji sprejema so izpolnjeni:
+
+| Pogoj | Izpolnjen | Opomba |
 |---|---|---|
-| 1. Obvezna polja in veljaven e-poštni naslov | Da | Preverjanje na frontendu (`required`, `type="email"`) in na backendu (regex, prazni nizi). |
-| 2. Unikaten e-poštni naslov | Da | Backend vrne `409` s sporočilom; e-pošta se normalizira v male črke. |
-| 3. Vloga `CUSTOMER` ob registraciji | Da | Vloga je nastavljena na strežniku in je uporabnik ne more izbrati. |
-| 4. Prijava, odjava in zaščitene strani | Da | Odjava uniči sejo in pobriše piškotek; strani za prijavljene se brez seje ne prikažejo. |
-| 5. Geslo ni shranjeno ali prikazano v čisti obliki | Da | bcrypt (12 krogov); `passwordHash` se ne vrača v odgovorih. |
+| Obvezna polja in veljaven e-poštni naslov | Da | Preverja se na frontendu in na backendu. |
+| Unikaten e-poštni naslov | Da | Če naslov že obstaja, backend vrne napako 409. |
+| Vloga CUSTOMER ob registraciji | Da | Vlogo nastavi strežnik. |
+| Prijava, odjava in zaščitene strani | Da | Ob odjavi se seja izbriše. |
+| Geslo ni shranjeno v čisti obliki | Da | Uporablja se bcrypt, geslo se ne vrača v odgovorih. |
 
-Zgodba je v celoti izpolnjena. Razlikovanje med vlogami (`OWNER`, `ADMIN`) obstaja v podatkovnem modelu, preverjanja vlog na API-ju pa še ni, ker še ni funkcionalnosti, ki bi ga potrebovale.
+Vloge OWNER in ADMIN so zapisane v podatkovnem modelu, preverjanja vlog na API-ju pa še ni, ker še ni funkcionalnosti, ki bi ga potrebovale.
 
-### US-02 – Koledar razpoložljivih terminov: ne zadošča
+### US-02 Koledar razpoložljivih terminov: ne zadošča
 
-Koledar ni implementiran. V podatkovnem modelu ni entitete za razpoložljivost ali nedostopna obdobja, zato nobenega od pogojev sprejema (prikaz in razlikovanje terminov, izbira samo prostih terminov, upoštevanje nedostopnih obdobij) ni mogoče izpolniti.
+Koledar ni narejen. V bazi tudi ni tabele za razpoložljive termine ali obdobja, ko lastnica ni dosegljiva, zato noben pogoj sprejema ni izpolnjen.
 
-### US-03 – Oddaja zahteve za rezervacijo: delno pripravljeno, ne zadošča
+### US-03 Oddaja zahteve za rezervacijo: delno pripravljeno, ne zadošča
 
-Model `Reservation` vsebuje vrsto storitve (`CONSULTATION`, `MAKEUP`), datum, neobvezno opombo in status s privzeto vrednostjo `PENDING`, kar ustreza pogojema 1 in 3 na ravni podatkov. Ni pa API končne točke za oddajo, preverjanja, ali je termin prost, potrditve oddaje ne obrazca. Stran Naroči termin prikazuje samo kartice s storitvami.
+Tabela Reservation vsebuje vrsto storitve (posvet ali ličenje), datum, opombo in status, ki je privzeto PENDING. To na ravni podatkov ustreza prvemu in tretjemu pogoju. Manjkajo pa API pot za oddajo zahteve, preverjanje, ali je termin prost, potrditev oddaje in obrazec. Stran Naroči termin prikazuje samo kartice s storitvami.
 
-### US-04 – Potrjevanje ali zavračanje rezervacij: ne zadošča
+### US-04 Potrjevanje ali zavračanje rezervacij: ne zadošča
 
-Statusa `APPROVED` in `REJECTED` obstajata v enumu, vendar ni skrbniškega pogleda, API-ja za odločitev, preverjanja prekrivanja terminov ne preverjanja vloge lastnice. Model `Reservation` za razliko od `FlowerOrder` nima polj za razlog zavrnitve in čas odločitve, ki ju zahteva pogoj 5.
+Statusa APPROVED in REJECTED sta definirana, ni pa skrbniškega pogleda, API poti za odločitev, preverjanja prekrivanja terminov in preverjanja, ali je uporabnik lastnica. Tabela Reservation tudi nima polj za razlog zavrnitve in čas odločitve, ki ju zahteva peti pogoj.
 
-### US-05 – Naročilo šopka ali aranžmaja: delno pripravljeno, ne zadošča
+### US-05 Naročilo šopka ali aranžmaja: delno pripravljeno, ne zadošča
 
-Model `FlowerOrder` pokriva vse podatke iz pogoja 1 (vrsta, velikost, količina, način izvedbe, želeni datum, opomba) in privzeti status `PENDING`. Ni pa obrazca, API končne točke ne strežniške validacije datuma (od danes do enega meseca vnaprej) in količine (pozitivno celo število), ki ju zahtevata pogoja 2 in 3.
+Tabela FlowerOrder vsebuje vse podatke iz prvega pogoja (vrsta, velikost, količina, način prevzema, želeni datum in opomba) in privzeti status PENDING. Manjkajo obrazec, API pot in preverjanje na strežniku, da je datum med današnjim dnem in enim mesecem vnaprej ter da je količina pozitivno celo število.
 
 ### Povzetek
 
-Implementirane funkcionalnosti trenutno zadoščajo samo zgodbi US-01. Projekt ima dobro pripravljeno dokumentacijo, podatkovni model in osnovo za avtentikacijo, jedro MVP (rezervacije in naročila) pa še ni izvedeno.
+Trenutna implementacija zadošča samo zgodbi US-01. Dokumentacija, podatkovni model in prijava so dobro pripravljeni, glavni del MVP, torej rezervacije in naročila, pa še ni narejen.
 
-## Opažanja pri lokalnem zagonu in pregledu kode
+## Opažanja pri lokalnem zagonu
 
-- **Manjkajoča okoljska spremenljivka v navodilih:** README omenja samo `DATABASE_URL`, backend pa se brez `SESSION_SECRET` ne zažene. Primer datoteke `.env.example` v repozitoriju ni.
-- **Zagon baze ni opisan:** README omenja Docker, ne vsebuje pa ukaza ali datoteke `docker-compose.yml` za zagon PostgreSQL.
-
+- V README je omenjena samo spremenljivka DATABASE_URL, backend pa se brez spremenljivke SESSION_SECRET ne zažene. V repozitoriju tudi ni primera datoteke .env.example.
+- V README piše, da se za bazo uporablja Docker, ni pa ukaza ali datoteke docker-compose.yml za zagon PostgreSQL. Obe pomanjkljivosti sta zdaj dopolnjeni v README.
