@@ -170,7 +170,7 @@ SESSION_SECRET="dolg-nakljucen-niz"
 **Nameščena aplikacija:**
 
 - Frontend: https://unikat-five.vercel.app
-- Backend API: https://unikat-backend-xxxx.onrender.com/api/health
+- Backend API: https://unikat-backend.onrender.com/api/health
 
 > Backend teče na brezplačnem paketu Render, ki po 15 minutah neaktivnosti zaspi. Prvi zahtevek lahko zato traja do ene minute.
 
